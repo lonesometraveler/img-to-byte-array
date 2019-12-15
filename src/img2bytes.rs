@@ -34,9 +34,9 @@ impl ImgToBytes {
 pub fn run(generator: ImgToBytes) -> String {
 
     match print_array(Path::new(&generator.file), &generator.array_name) {
-        Ok(f) => return f,
-        _ => return String::from("error")
-    };
+        Ok(f) => f,
+        _ => String::from("error")
+    }
 }
 
 fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> { // TODO: error handling
@@ -44,12 +44,11 @@ fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> { 
     let img = image::open(path).unwrap().to_luma();
     let (width, height) = img.dimensions();
 
-    let mut bit_counter: u32 = 0;
     let mut byte: u8 = 0;
 
     let mut output = format!("static const unsigned char {}[{}] = \r\n{{ // {} \r\n", array_name, (width / 8) * height, path.to_str().unwrap());
 
-    for pixel in img.pixels() {
+    for (bit_counter, pixel) in img.pixels().enumerate() {
 
         match pixel {
             Luma([0]) => byte &= 0xFE,
@@ -62,7 +61,6 @@ fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> { 
         }
 
         byte = byte.rotate_left(1);
-        bit_counter += 1;
     }
 
     Ok(format!("{}\r\n}};", output))
