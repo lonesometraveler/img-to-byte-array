@@ -1,10 +1,10 @@
-//! # LCD bitmap 
-//! 
+//! # LCD bitmap
+//!
 //! Usage: cargo run path_to_image name_of_array > file_to_be_saved
 //! Example: cargo run sample/arrow_up.png arrow_up > sample/arrow_up.h
 
-use std::path::Path;
 use image::Luma;
+use std::path::Path;
 
 pub struct ImgToBytes {
     file: String,
@@ -12,9 +12,7 @@ pub struct ImgToBytes {
 }
 
 impl ImgToBytes {
-
     pub fn new(mut args: std::env::Args) -> Result<ImgToBytes, &'static str> {
-
         args.next(); // skip the first argument which is the name of the program
 
         let file = match args.next() {
@@ -27,35 +25,39 @@ impl ImgToBytes {
             None => return Err("no array name specified. Usage: cargo run path_to_image_folder name_of_array > filename_to_be_saved.h")
         };
 
-        Ok(ImgToBytes { file, array_name } )
+        Ok(ImgToBytes { file, array_name })
     }
 }
 
 pub fn run(generator: ImgToBytes) -> String {
-
     match print_array(Path::new(&generator.file), &generator.array_name) {
         Ok(f) => f,
-        _ => String::from("error")
+        _ => String::from("error"),
     }
 }
 
-fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> { // TODO: error handling
+fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> {
+    // TODO: error handling
 
     let img = image::open(path).unwrap().to_luma();
     let (width, height) = img.dimensions();
 
     let mut byte: u8 = 0;
 
-    let mut output = format!("static const unsigned char {}[{}] = \r\n{{ // {} \r\n", array_name, (width / 8) * height, path.to_str().unwrap());
+    let mut output = format!(
+        "static const unsigned char {}[{}] = \r\n{{ // {} \r\n",
+        array_name,
+        (width / 8) * height,
+        path.to_str().unwrap()
+    );
 
-    for (bit_counter, pixel) in img.pixels().enumerate() {
-
+    for (bit, pixel) in img.pixels().enumerate() {
         match pixel {
             Luma([0]) => byte &= 0xFE,
             _ => byte |= 0x01,
         }
 
-        if bit_counter % 8 == 7 {
+        if bit % 8 == 7 {
             output = format!("{}0x{:02x},", output, byte);
             byte = 0;
         }

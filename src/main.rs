@@ -4,8 +4,7 @@ use std::process;
 use img2bytes::ImgToBytes;
 
 fn main() {
-
-    let generator = ImgToBytes::new(env::args()).unwrap_or_else( |err| {
+    let generator = ImgToBytes::new(env::args()).unwrap_or_else(|err| {
         eprintln!("problem parsing arguments: {}", err);
         process::exit(1);
     });
