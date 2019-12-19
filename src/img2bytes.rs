@@ -27,12 +27,12 @@ impl ImgToBytes {
 
         Ok(ImgToBytes { file, array_name })
     }
-}
 
-pub fn run(generator: ImgToBytes) -> String {
-    match print_array(Path::new(&generator.file), &generator.array_name) {
-        Ok(f) => f,
-        _ => String::from("error"),
+    pub fn run(&self) -> String {
+        match print_array(Path::new(&self.file), &self.array_name) {
+            Ok(f) => f,
+            _ => String::from("error"),
+        }
     }
 }
 
@@ -45,7 +45,7 @@ fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> {
     let mut byte: u8 = 0;
 
     let mut output = format!(
-        "static const unsigned char {}[{}] = \r\n{{ // {} \r\n",
+        "static const unsigned char {}[{}] = \r\n{{ // {}",
         array_name,
         (width / 8) * height,
         path.to_str().unwrap()
@@ -60,6 +60,10 @@ fn print_array(path: &Path, array_name: &str) -> Result<String, &'static str> {
         if bit % 8 == 7 {
             output = format!("{}0x{:02x},", output, byte);
             byte = 0;
+        }
+
+        if bit % (12 * 8) == 0 {
+            output.push_str("\n\t")
         }
 
         byte = byte.rotate_left(1);
