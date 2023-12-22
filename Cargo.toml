@@ -9,4 +9,4 @@ name = "img2bytes"
 path = "src/img2bytes.rs"
 
 [dependencies]
-image = "0.22.3"
+image = "0.24"
