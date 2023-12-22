@@ -51,19 +51,12 @@ pub fn convert(file_path: &str, array_name: &str) -> Result<String, Box<dyn Erro
 }
 
 // Format bytes for C style array
-fn format_bytes(data: Vec<u8>, n: usize) -> String {
-    let mut result = String::new();
-
-    for (i, item) in data.iter().enumerate() {
-        result.push_str(&format!("0x{:02x}", item));
-
-        // Insert a newline character after every n items
-        if (i + 1) % n == 0 && i + 1 != data.len() {
-            result.push_str(",\n\t");
-        } else if i + 1 != data.len() {
-            result.push_str(", ");
-        }
-    }
-
-    result
+fn format_bytes(data: Vec<u8>, items_per_line: usize) -> String {
+    data.chunks(items_per_line)
+        .map(|chunk| {
+            let line: Vec<String> = chunk.iter().map(|item| format!("0x{:02x}", item)).collect();
+            line.join(", ")
+        })
+        .collect::<Vec<String>>()
+        .join(",\n\t")
 }
