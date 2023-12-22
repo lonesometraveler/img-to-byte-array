@@ -8,7 +8,7 @@ use std::error::Error;
 
 pub fn convert(file_path: &str, array_name: &str) -> Result<String, Box<dyn Error>> {
     // Open the image
-    let img = image::open(file_path)?.to_luma();
+    let img = image::open(file_path)?.to_luma8();
     let (width, height) = img.dimensions();
 
     let mut byte: u8 = 0;
