@@ -12,12 +12,13 @@ pub fn convert(file_path: &str, array_name: &str) -> Result<String, Box<dyn Erro
     let (width, height) = img.dimensions();
 
     let mut byte: u8 = 0;
+    let mut bytes: Vec<u8> = Vec::new();
 
     let mut output = format!(
-        "static const unsigned char {}[{}] = \n{{ // {}",
+        "// {}\nstatic const unsigned char {}[{}] = \n{{\n\t",
+        file_path,
         array_name,
         (width / 8) * height,
-        file_path
     );
 
     // Iterate over the pixels
@@ -29,20 +30,40 @@ pub fn convert(file_path: &str, array_name: &str) -> Result<String, Box<dyn Erro
             _ => byte |= 0x01,
         }
 
-        // Print after accumulating 8 bits
+        // Store the byte after accumulating 8 bits
         if bit % 8 == 7 {
-            output.push_str(&format!("0x{:02x},", byte));
+            bytes.push(byte);
             byte = 0;
-        }
-
-        // Insert a new line after printing every 12 bytes
-        if bit % (12 * 8) == 0 {
-            output.push_str("\n\t")
         }
 
         // Rotate the byte to the left
         byte = byte.rotate_left(1);
     }
 
-    Ok(format!("{}\r\n}};", output))
+    // Insert commas and a new line after printing every 12 bytes
+    let joined_bytes = format_bytes(bytes, 12);
+    output.push_str(&joined_bytes);
+
+    // Close the array
+    output.push_str("\n};");
+
+    Ok(output)
+}
+
+// Format bytes for C style array
+fn format_bytes(data: Vec<u8>, n: usize) -> String {
+    let mut result = String::new();
+
+    for (i, item) in data.iter().enumerate() {
+        result.push_str(&format!("0x{:02x}", item));
+
+        // Insert a newline character after every n items
+        if (i + 1) % n == 0 && i + 1 != data.len() {
+            result.push_str(",\n\t");
+        } else if i + 1 != data.len() {
+            result.push_str(", ");
+        }
+    }
+
+    result
 }
